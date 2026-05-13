@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: infraguard
+  namespace: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: infraguard
+  template:
+    metadata:
+      labels:
+        app: infraguard
+    spec:
+      containers:
+      - name: infraguard
+        image: ahmadch123/infraguard:latest
+        ports:
+        - containerPort: 5000
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: infraguard-service
+  namespace: dev
+spec:
+  selector:
+    app: infraguard
+  ports:
+  - port: 80
+    targetPort: 5000
+  type: ClusterIP
